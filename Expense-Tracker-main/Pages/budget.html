@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker with Budget</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #007BFF;
+        }
+
+        .input-group {
+            margin: 10px 0;
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .btn {
+            background: #007BFF;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 600;
+            width: 85%;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .budget-info {
+            margin-top: 15px;
+            text-align: left;
+            font-size: 18px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 15px;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .warning {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Expense Tracker</h1>
+
+        <!-- Set Budget -->
+        <div class="input-group">
+            <input type="number" id="budgetAmount" placeholder="Enter Your Budget (₹)">
+            <button class="btn" onclick="setBudget()">Set Budget</button>
+        </div>
+
+        <!-- Budget Display -->
+        <div class="budget-info">
+            <p>Budget: <strong id="budgetValue">₹0</strong></p>
+            <p>Total Expenses: <strong id="totalExpense">₹0</strong></p>
+            <p>Remaining Balance: <strong id="remainingBalance">₹0</strong></p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <p id="budgetWarning" class="warning"></p>
+        </div>
+
+        <!-- Add Expenses -->
+        <div class="input-group">
+            <input type="text" id="expenseCode" placeholder="Expense Name">
+            <input type="number" id="expenseAmount" placeholder="Amount (₹)">
+            <button class="btn" onclick="addExpense()">Add Expense</button>
+        </div>
+
+        <!-- View Summary -->
+        <button class="btn" onclick="window.location.href='summary.html'">View Summary</button>
+    </div>
+
+    <script>
+        let budget = parseFloat(localStorage.getItem("budget")) || 0;
+        let totalExpense = parseFloat(localStorage.getItem("totalExpense")) || 0;
+
+        function setBudget() {
+            budget = parseFloat(document.getElementById("budgetAmount").value) || 0;
+            localStorage.setItem("budget", budget);
+            updateBudgetDisplay();
+        }
+
+        function updateBudgetDisplay() {
+            document.getElementById("budgetValue").innerText = `₹${budget}`;
+            document.getElementById("totalExpense").innerText = `₹${totalExpense}`;
+            let remaining = budget - totalExpense;
+            document.getElementById("remainingBalance").innerText = `₹${remaining}`;
+            document.getElementById("progressBar").style.width = (budget > 0) ? `${(totalExpense / budget) * 100}%` : "0%";
+
+            if (remaining < 0) {
+                document.getElementById("remainingBalance").style.color = "red";
+                document.getElementById("progressBar").style.background = "red";
+                document.getElementById("budgetWarning").innerText = "Warning: You have exceeded your budget!";
+            } else {
+                document.getElementById("remainingBalance").style.color = "green";
+                document.getElementById("progressBar").style.background = "#4CAF50";
+                document.getElementById("budgetWarning").innerText = "";
+            }
+        }
+
+        function addExpense() {
+            const expenseAmount = parseFloat(document.getElementById('expenseAmount').value.trim());
+            const expenseCode = document.getElementById('expenseCode').value.trim();
+
+            if (expenseCode && !isNaN(expenseAmount) && expenseAmount > 0) {
+                totalExpense += expenseAmount;
+                localStorage.setItem("totalExpense", totalExpense);
+                updateBudgetDisplay();
+
+                document.getElementById('expenseCode').value = '';
+                document.getElementById('expenseAmount').value = '';
+            } else {
+                alert('Please enter a valid expense name and amount.');
+            }
+        }
+
+        function loadBudgetData() {
+            totalExpense = parseFloat(localStorage.getItem("totalExpense")) || 0;
+            updateBudgetDisplay();
+        }
+
+        window.onload = loadBudgetData;
+    </script>
+
+</body>
+</html>

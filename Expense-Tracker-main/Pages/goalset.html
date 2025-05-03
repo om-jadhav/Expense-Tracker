@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Setting | Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #007BFF;
+        }
+
+        .input-group {
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .btn {
+            background: #007BFF;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .goal-list {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .goal-card {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 15px;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .btn-delete {
+            background: red;
+            margin-top: 10px;
+        }
+
+        .btn-delete:hover {
+            background: darkred;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Set Financial Goals</h1>
+
+        <div class="input-group">
+            <label>Goal Type:</label>
+            <select id="goalType">
+                <option value="Savings">Savings Goal</option>
+                <option value="Expense Reduction">Expense Reduction Goal</option>
+                <option value="Debt Payoff">Debt Payoff Goal</option>
+                <option value="Emergency Fund">Emergency Fund Goal</option>
+                <option value="Investment">Investment Goal</option>
+                <option value="Custom">Custom Financial Goal</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Goal Name:</label>
+            <input type="text" id="goalName" placeholder="Enter goal name (e.g., Save for vacation)">
+        </div>
+
+        <div class="input-group">
+            <label>Target Amount (₹):</label>
+            <input type="number" id="goalAmount" placeholder="Enter target amount">
+        </div>
+
+        <div class="input-group">
+            <label>Current Savings/Progress (₹):</label>
+            <input type="number" id="goalProgress" placeholder="Enter current amount saved">
+        </div>
+
+        <button class="btn" onclick="addGoal()">Add Goal</button>
+
+        <div class="goal-list" id="goalList"></div>
+
+        <button class="btn" onclick="window.location.href='/Home_page.html'">Go Back</button>
+    </div>
+
+   <!-- REPLACE YOUR EXISTING <script> WITH THIS UPDATED SCRIPT -->
+
+<script>
+    function addGoal() {
+        let goalType = document.getElementById("goalType").value;
+        let goalName = document.getElementById("goalName").value.trim();
+        let goalAmount = parseFloat(document.getElementById("goalAmount").value);
+        let goalProgress = parseFloat(document.getElementById("goalProgress").value) || 0;
+
+        if (!goalName || isNaN(goalAmount) || goalAmount <= 0) {
+            alert("Please enter valid goal details.");
+            return;
+        }
+
+        let goals = JSON.parse(localStorage.getItem("goals")) || [];
+        goals.push({ goalType, goalName, goalAmount, goalProgress });
+        localStorage.setItem("goals", JSON.stringify(goals));
+
+        document.getElementById("goalName").value = "";
+        document.getElementById("goalAmount").value = "";
+        document.getElementById("goalProgress").value = "";
+
+        displayGoals();
+    }
+
+    function displayGoals() {
+        let goals = JSON.parse(localStorage.getItem("goals")) || [];
+        let goalList = document.getElementById("goalList");
+        goalList.innerHTML = "";
+
+        goals.forEach((goal, index) => {
+            let progressPercentage = (goal.goalProgress / goal.goalAmount) * 100;
+
+            let goalCard = document.createElement("div");
+            goalCard.classList.add("goal-card");
+            goalCard.innerHTML = `
+                <h3>${goal.goalName} (${goal.goalType})</h3>
+                <p>Target: ₹${goal.goalAmount}</p>
+                <p>Saved: ₹<span id="savedAmount-${index}">${goal.goalProgress}</span></p>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${progressPercentage}%"></div>
+                </div>
+
+                <div class="input-group">
+                    <input type="number" id="newProgress-${index}" placeholder="New savings amount">
+                    <button class="btn" onclick="updateGoalProgress(${index})">Update Progress</button>
+                </div>
+
+                <button class="btn btn-delete" onclick="deleteGoal(${index})">Delete</button>
+            `;
+            goalList.appendChild(goalCard);
+        });
+    }
+
+    function updateGoalProgress(index) {
+        let goals = JSON.parse(localStorage.getItem("goals")) || [];
+        let newProgress = parseFloat(document.getElementById(`newProgress-${index}`).value);
+
+        if (isNaN(newProgress) || newProgress < 0) {
+            alert("Enter a valid new progress amount.");
+            return;
+        }
+
+        goals[index].goalProgress = newProgress;
+        localStorage.setItem("goals", JSON.stringify(goals));
+        displayGoals();
+    }
+
+    function deleteGoal(index) {
+        let goals = JSON.parse(localStorage.getItem("goals")) || [];
+        goals.splice(index, 1);
+        localStorage.setItem("goals", JSON.stringify(goals));
+        displayGoals();
+    }
+
+    window.onload = displayGoals;
+</script>
+
+
+</body>
+</html>

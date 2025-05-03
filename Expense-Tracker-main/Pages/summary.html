@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary | Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333333;
+        }
+
+        .summary-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .selector {
+            margin-bottom: 15px;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            width: 100%;
+            border: 1px solid #ccc;
+        }
+
+        .card {
+            display: none;
+            padding: 20px;
+        }
+
+        .card.active {
+            display: block;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 350px;
+            margin: auto;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #f0f0f0;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .btn {
+            background: #007BFF;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="summary-container">
+        <h2>Expense Summary</h2>
+
+        <div class="selector">
+            <select id="summary-select" onchange="switchSummary()">
+                <option value="overview">Total Overview</option>
+                <option value="breakdown">Expense Breakdown (Pie Chart)</option>
+                <option value="trend">Monthly Expense Trend</option>
+                <option value="categories">Top Spending Categories</option>
+            </select>
+        </div>
+
+        <div id="overview" class="card active">
+            <h3>Total Overview</h3>
+            <p>Total Expenses: <strong id="total-expenses">₹0</strong></p>
+            <p>Remaining Balance: <strong id="remaining-balance">₹0</strong></p>
+            <input type="number" id="expense-input" placeholder="Enter Expenses">
+            <input type="number" id="balance-input" placeholder="Enter Balance">
+            <button class="btn" onclick="updateOverview()">Save</button>
+        </div>
+
+        <div id="breakdown" class="card">
+            <h3>Expense Breakdown</h3>
+            <div class="chart-container">
+                <canvas id="expenseChart"></canvas>
+            </div>
+            <input type="number" id="food-expense" placeholder="Food">
+            <input type="number" id="transport-expense" placeholder="Transport">
+            <input type="number" id="shopping-expense" placeholder="Shopping">
+            <input type="number" id="bills-expense" placeholder="Bills">
+            <input type="number" id="other-expense" placeholder="Other">
+            <button class="btn" onclick="updateCharts()">Update Chart</button>
+        </div>
+
+        <div id="trend" class="card">
+            <h3>Monthly Expense Trend</h3>
+            <div class="chart-container">
+                <canvas id="expenseTrend"></canvas>
+            </div>
+        </div>
+
+        <div id="categories" class="card">
+            <h3>Top Spending Categories</h3>
+            <ul id="top-categories">
+                <li>No Data</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function switchSummary() {
+            let selected = document.getElementById("summary-select").value;
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.getElementById(selected).classList.add('active');
+        }
+
+        function updateOverview() {
+            let totalExpenses = document.getElementById("expense-input").value || 0;
+            let remainingBalance = document.getElementById("balance-input").value || 0;
+
+            localStorage.setItem("totalExpenses", totalExpenses);
+            localStorage.setItem("remainingBalance", remainingBalance);
+
+            document.getElementById("total-expenses").innerText = `₹${totalExpenses}`;
+            document.getElementById("remaining-balance").innerText = `₹${remainingBalance}`;
+        }
+
+        function updateCharts() {
+            let expenses = {
+                food: parseFloat(document.getElementById("food-expense").value) || 0,
+                transport: parseFloat(document.getElementById("transport-expense").value) || 0,
+                shopping: parseFloat(document.getElementById("shopping-expense").value) || 0,
+                bills: parseFloat(document.getElementById("bills-expense").value) || 0,
+                other: parseFloat(document.getElementById("other-expense").value) || 0,
+            };
+
+            localStorage.setItem("expenses", JSON.stringify(expenses));
+
+            expenseChart.data.datasets[0].data = Object.values(expenses);
+            expenseChart.update();
+
+            let sortedExpenses = Object.entries(expenses)
+                .sort((a, b) => b[1] - a[1])
+                .filter(item => item[1] > 0);
+
+            document.getElementById("top-categories").innerHTML = sortedExpenses.length
+                ? sortedExpenses.map(item => `<li>${item[0]} - ₹${item[1]}</li>`).join("")
+                : "<li>No Data</li>";
+        }
+
+        let expenseChart = new Chart(document.getElementById('expenseChart').getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: ['Food', 'Transport', 'Shopping', 'Bills', 'Other'],
+                datasets: [{
+                    label: 'Expenses',
+                    data: [0, 0, 0, 0, 0],
+                    backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff']
+                }]
+            }
+        });
+
+        let expenseTrendChart = new Chart(document.getElementById('expenseTrend').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                datasets: [{
+                    label: 'Expenses Over Time',
+                    data: [5000, 7000, 8500, 9200, 10000],
+                    borderColor: '#007BFF',
+                    fill: false
+                }]
+            }
+        });
+
+        function loadSavedData() {
+            fetch('http://localhost:5000/get-expenses')
+                .then(response => response.json())
+                .then(expenses => {
+                    // Total Expenses
+                    const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+                    document.getElementById("total-expenses").innerText = `₹${total}`;
+
+                    // Balance (optional logic, replace if needed)
+                    const savedBalance = localStorage.getItem("remainingBalance") || 0;
+                    document.getElementById("remaining-balance").innerText = `₹${savedBalance}`;
+
+                    // Categorize
+                    const categoryMap = {
+                        food: 0,
+                        transport: 0,
+                        shopping: 0,
+                        bills: 0,
+                        other: 0
+                    };
+
+                    expenses.forEach(exp => {
+                        const key = exp.code.toLowerCase();
+                        if (categoryMap.hasOwnProperty(key)) {
+                            categoryMap[key] += exp.amount;
+                        } else {
+                            categoryMap.other += exp.amount; // fallback
+                        }
+                    });
+
+                    // Update Pie Chart
+                    expenseChart.data.datasets[0].data = Object.values(categoryMap);
+                    expenseChart.update();
+
+                    // Top Categories
+                    const sorted = Object.entries(categoryMap)
+                        .sort((a, b) => b[1] - a[1])
+                        .filter(item => item[1] > 0);
+
+                    document.getElementById("top-categories").innerHTML = sorted.length
+                        ? sorted.map(item => `<li>${item[0]} - ₹${item[1]}</li>`).join("")
+                        : "<li>No Data</li>";
+                })
+                .catch(error => {
+                    console.error('Error loading expenses:', error);
+                });
+        }
+
+
+        loadSavedData();
+    </script>
+
+</body>
+
+</html>

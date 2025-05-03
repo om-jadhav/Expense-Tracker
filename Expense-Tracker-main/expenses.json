@@ -1,0 +1,78 @@
+[
+  {
+    "code": "car1",
+    "amount": 1000
+  },
+  {
+    "code": "car",
+    "amount": 1000
+  },
+  {
+    "code": "bike",
+    "amount": 2000
+  },
+  {
+    "code": "food",
+    "amount": 1000
+  },
+  {
+    "code": "transport",
+    "amount": 2500
+  },
+  {
+    "code": "food",
+    "amount": 200
+  },
+  {
+    "code": "food",
+    "amount": 123
+  },
+  {
+    "code": "xyz",
+    "amount": 100
+  },
+  {
+    "code": "xyz",
+    "amount": 1000
+  },
+  {
+    "code": "xyz1",
+    "amount": 100
+  },
+  {
+    "code": "xyz 12",
+    "amount": 1999
+  },
+  {
+    "code": "food",
+    "amount": 200
+  },
+  {
+    "code": "cars",
+    "amount": 1000
+  },
+  {
+    "code": "dress",
+    "amount": 200
+  },
+  {
+    "code": "food",
+    "amount": 400
+  },
+  {
+    "code": "travel",
+    "amount": 100
+  },
+  {
+    "code": "dress",
+    "amount": 200
+  },
+  {
+    "code": "travel",
+    "amount": 100
+  },
+  {
+    "code": "food",
+    "amount": 300
+  }
+]

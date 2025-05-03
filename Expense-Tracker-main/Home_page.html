@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333333;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .header {
+            background: #003366;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            width: 600px;
+            font-size: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .image img {
+            height: 150px;
+            width: auto;
+        }
+
+        .account-info {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            width: 400px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .account-info strong {
+            color: #003366;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            width: 80%;
+            max-width: 900px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 123, 255, 0.2);
+        }
+
+        .btn {
+            background: #007BFF;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="para">
+                <h1>HOME</h1>
+                <p>Welcome Back..<br>Let's Track Money Together</p>
+            </div>
+            <div class="image">
+                <img src="Assests/logo.0efa799a.png" alt="image">
+            </div>
+        </div>
+
+        <div class="account-info">
+            <div>
+                <p>Total Money Spent - <strong id="totalExpense">₹0</strong></p>
+                <p>Account Balance - <strong id="remainingBalance">₹0</strong></p>
+            </div>
+            <span style="font-size: 40px;">👤</span>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <p>ADD EXPENSE</p>
+            <button class="btn" onclick="window.location.href='/Pages/addexp.html'">Add Expense</button>
+        </div>
+        <div class="card">
+            <p>SUMMARY</p>
+            <button class="btn" onclick="window.location.href='/Pages/summary.html'">SUMMARY</button>
+        </div>
+        <div class="card">
+            <p>BUDGET</p>
+            <button class="btn" onclick="window.location.href='/Pages/budget.html'">BUDGET</button>
+        </div>
+        <div class="card">
+            <p>GOAL SETTING</p>
+            <button class="btn" onclick="window.location.href='/Pages/goalset.html'">GOAL SET</button>
+        </div>
+    </div>
+    <div style="width: 80%; max-width: 700px; margin-top: 40px;">
+        <div
+            style="background: #ffffff; padding: 30px; border-radius: 20px; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);">
+            <h2 style="text-align: center; color: #003366; margin-bottom: 25px;">📘 Feature Overview</h2>
+            <ul style="list-style: none; padding: 0; margin: 0; line-height: 1.7; font-size: 16px;">
+                <li><span style="font-size: 20px;">📝</span> <strong>Add Expense</strong> – Log your daily spending
+                    easily to stay on top of your finances.</li>
+                <li><span style="font-size: 20px;">📊</span> <strong>Summary</strong> – Get a clear breakdown of your
+                    expenses by category and date.</li>
+                <li><span style="font-size: 20px;">💰</span> <strong>Budget</strong> – Set a spending limit and monitor
+                    how much you’ve spent and saved.</li>
+                <li><span style="font-size: 20px;">🎯</span> <strong>Goal Setting</strong> – Define financial goals and
+                    track your progress to reach them faster.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function loadBudgetData() {
+            fetch('http://localhost:5000/get-expenses')
+                .then(res => res.json())
+                .then(expenses => {
+                    const totalExpense = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+                    const budget = parseFloat(localStorage.getItem("budget")) || 0;
+                    const remaining = budget - totalExpense;
+
+                    document.getElementById("totalExpense").innerText = `₹${totalExpense}`;
+                    document.getElementById("remainingBalance").innerText = `₹${remaining}`;
+                })
+                .catch(error => {
+                    console.error("Failed to fetch expenses:", error);
+                    document.getElementById("totalExpense").innerText = `₹0`;
+                    document.getElementById("remainingBalance").innerText = `₹0`;
+                });
+        }
+
+        window.onload = loadBudgetData;
+    </script>
+
+
+</body>
+
+</html>

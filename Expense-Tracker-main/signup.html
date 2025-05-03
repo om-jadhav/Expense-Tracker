@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #e0f7e9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .signup-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.2);
+            width: 350px;
+            text-align: center;
+        }
+
+        .signup-container h2 {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .input-field {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ff9800;
+            border-radius: 4px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .signup-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        .signup-btn:hover {
+            background: #e65100;
+        }
+
+        .message {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            color: #43a047;
+        }
+
+        .error-message {
+            color: #e53935;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="signup-container">
+        <h2>Sign Up</h2>
+        <form id="signupForm" onsubmit="return registerUser(event)">
+            <input type="text" id="newUsername" class="input-field" name="username" placeholder="New Username" required><br>
+            <input type="password" id="newPassword" class="input-field" name="password" placeholder="New Password" required><br>
+            <button type="submit" class="signup-btn">Sign Up</button>
+        </form>
+        <div id="signupFeedback"></div>
+    </div>
+
+    <script>
+        async function registerUser(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newPassword').value;
+            const feedbackDiv = document.getElementById('signupFeedback');
+
+            if (!username || !password) {
+                feedbackDiv.innerHTML = '<div class="error-message">All fields are required!</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                feedbackDiv.innerHTML = `<div class="${response.ok ? 'success-message' : 'error-message'}">${data.message}</div>`;
+
+                if (response.ok) {
+                    setTimeout(() => {
+                        window.location.href = "login.html";
+                    }, 3000);
+                }
+
+            } catch (error) {
+                feedbackDiv.innerHTML = '<div class="error-message">Error signing up. Try again later.</div>';
+                console.error(error);
+            }
+        }
+    </script>
+
+</body>
+</html>

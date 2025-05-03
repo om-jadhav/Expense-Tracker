@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- ✅ Load Chart.js first -->
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f4;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 800px;
+      width: 100%;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 32px;
+    }
+
+    .expense-form input,
+    .expense-form button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+
+    .expense-form input {
+      width: 150px;
+    }
+
+    .expense-form button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .expense-form button:hover {
+      background-color: #45a049;
+    }
+
+    canvas {
+      margin-top: 20px;
+    }
+
+    .expense-list {
+      margin-top: 20px;
+      text-align: left;
+      width: 100%;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .expense-list table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .expense-list table,
+    th,
+    td {
+      border: 1px solid #ddd;
+    }
+
+    .expense-list th,
+    td {
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .expense-list th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Expense Tracker</h1>
+
+    <!-- Expense Form -->
+    <div class="expense-form">
+      <input type="text" id="expenseCode" placeholder="Expense Code" />
+      <input type="number" id="expenseAmount" placeholder="Amount" />
+      <button onclick="addExpense()">Add Expense</button>
+    </div>
+
+    <h2>Expense Overview</h2>
+    <canvas id="expenseChart" width="400" height="200"></canvas>
+
+    <!-- Display List of Expenses -->
+    <div class="expense-list">
+      <h3>Added Expenses</h3>
+      <table id="expenseTable">
+        <thead>
+          <tr>
+            <th>Expense Code</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let expenseData = {
+      labels: [],
+      data: []
+    };
+
+    let chart;
+
+    function initChart() {
+      const ctx = document.getElementById('expenseChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: expenseData.labels,
+          datasets: [{
+            label: 'Expenses',
+            data: expenseData.data,
+            backgroundColor: '#4CAF50',
+            borderColor: '#388E3C',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Expense Codes'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Amount ($)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateChart() {
+      if (chart) {
+        chart.data.labels = expenseData.labels;
+        chart.data.datasets[0].data = expenseData.data;
+        chart.update();
+      }
+    }
+
+    function addExpense() {
+      const expenseCode = document.getElementById('expenseCode').value.trim();
+      const expenseAmount = parseFloat(document.getElementById('expenseAmount').value.trim());
+
+      if (expenseCode && !isNaN(expenseAmount) && expenseAmount > 0) {
+        fetch('http://localhost:5000/add-expense', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ expenseCode, expenseAmount })
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log(data.message);
+
+            const index = expenseData.labels.indexOf(expenseCode);
+
+            if (index === -1) {
+              expenseData.labels.push(expenseCode);
+              expenseData.data.push(expenseAmount);
+            } else {
+              expenseData.data[index] += expenseAmount;
+            }
+
+            addExpenseToTable(expenseCode, expenseAmount);
+
+            document.getElementById('expenseCode').value = '';
+            document.getElementById('expenseAmount').value = '';
+
+            updateChart();
+          })
+          .catch(error => {
+            console.error('❌ Error saving expense:', error);
+            alert('Failed to save expense. Please try again.');
+          });
+      } else {
+        alert('Please enter a valid expense code and amount.');
+      }
+    }
+
+    function addExpenseToTable(expenseCode, expenseAmount) {
+      const tableBody = document.querySelector('#expenseTable tbody');
+      const row = document.createElement('tr');
+
+      const cellCode = document.createElement('td');
+      cellCode.textContent = expenseCode;
+
+      const cellAmount = document.createElement('td');
+      cellAmount.textContent = `$${expenseAmount.toFixed(2)}`;
+
+      row.appendChild(cellCode);
+      row.appendChild(cellAmount);
+      tableBody.appendChild(row);
+    }
+
+    window.onload = initChart;
+  </script>
+
+</body>
+
+</html>
